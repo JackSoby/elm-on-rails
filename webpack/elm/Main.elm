@@ -35,7 +35,7 @@ update msg model =
         AddTodo ->
           { model | input = "", todos = model.input :: model.todos }
         HandleTextInput nextInput ->
-          {model | input = nextInput }
+          { model | input = nextInput }
 
 
 view : Model -> Html Msg
