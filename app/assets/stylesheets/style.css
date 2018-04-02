@@ -50,12 +50,15 @@ left: 0
     background-color: #8100B1;
     padding: 8px;
     margin: 10px;
+    color: white;
+
 }
 .todo-banner{
   display: flex;
   justify-content: center;
 }
-.crud{
+.crud {
   margin: 10px;
   color: white;
+  cursor: pointer;
 }
