@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root to: "welcomes#index"
   namespace :api do
       namespace :v1 do
-        resources :todos, only: [:index, :create, :destroy]
+        resources :todos
 
       end
     end

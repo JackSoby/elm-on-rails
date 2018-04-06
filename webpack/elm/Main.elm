@@ -1,11 +1,13 @@
 module Main exposing (..)
 
+import RemoteData exposing (WebData, RemoteData(..))
 import Http
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (value, class, placeholder)
-import Json.Decode as Decode
+import Html.Attributes exposing (value, class, placeholder, id)
+import Json.Decode as Decode exposing (field, Decoder, int, string)
 import Json.Encode as Encode
+import RemoteData.Http exposing (..)
 
 
 --main function
@@ -37,6 +39,7 @@ type Msg
     | LoadAll (Result Http.Error (List String))
     | UpdateTodoList (Result Http.Error String)
     | DeleteTodo String
+    | UpdateDeletedTodos (WebData String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -69,7 +72,10 @@ update msg model =
                 ( model, Cmd.none )
 
         DeleteTodo toBeDeleted ->
-            ( model, Cmd.none )
+            ( Model "" model.todos, encodeDeletedTodo toBeDeleted )
+
+        UpdateDeletedTodos allTodos ->
+            ( { model | input = "", todos = model.todos }, getTodos )
 
 
 view : Model -> Html Msg
@@ -77,7 +83,7 @@ view model =
     let
         renderedTodos =
             model.todos
-                |> List.map (\todo -> div [ class "single-todo" ] [ text todo, span [ class "crud" ] [ text "Update" ], span [ class "crud" ] [ text "Delete" ] ])
+                |> List.map (\todo -> div [ class "single-todo" ] [ text todo, span [ id todo, class "crud" ] [ text "Update" ], span [ onClick (DeleteTodo todo), class "crud" ] [ text "Delete" ] ])
     in
         div [ class "elm-container" ]
             [ div [ class "other-body" ]
@@ -113,6 +119,21 @@ encodeTodo todo =
         newTodo encodedTodo
 
 
+encodeDeletedTodo : String -> Cmd Msg
+encodeDeletedTodo todo =
+    let
+        encodedTodo =
+            Encode.object
+                [ ( "name", Encode.string todo ) ]
+    in
+        oldTodo encodedTodo
+
+
+oldTodo : Decode.Value -> Cmd Msg
+oldTodo todo =
+    delete "/api/v1/todos/:id" UpdateDeletedTodos (todo)
+
+
 newTodo : Encode.Value -> Cmd Msg
 newTodo userInput =
     let
@@ -131,3 +152,4 @@ decodeTodoList =
 decodeText : Decode.Decoder String
 decodeText =
     Decode.at [ "name" ] Decode.string
+    
