@@ -14,6 +14,25 @@ var _user$project$Main$Model = F2(
 	function (a, b) {
 		return {input: a, todos: b};
 	});
+var _user$project$Main$UpdateDeletedTodos = function (a) {
+	return {ctor: 'UpdateDeletedTodos', _0: a};
+};
+var _user$project$Main$oldTodo = function (todo) {
+	return A3(_ohanhi$remotedata_http$RemoteData_Http$delete, '/api/v1/todos/:id', _user$project$Main$UpdateDeletedTodos, todo);
+};
+var _user$project$Main$encodeDeletedTodo = function (todo) {
+	var encodedTodo = _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'name',
+				_1: _elm_lang$core$Json_Encode$string(todo)
+			},
+			_1: {ctor: '[]'}
+		});
+	return _user$project$Main$oldTodo(encodedTodo);
+};
 var _user$project$Main$DeleteTodo = function (a) {
 	return {ctor: 'DeleteTodo', _0: a};
 };
@@ -39,6 +58,21 @@ var _user$project$Main$encodeTodo = function (todo) {
 			_1: {ctor: '[]'}
 		});
 	return _user$project$Main$newTodo(encodedTodo);
+};
+var _user$project$Main$LoadAll = function (a) {
+	return {ctor: 'LoadAll', _0: a};
+};
+var _user$project$Main$getTodos = A2(
+	_elm_lang$http$Http$send,
+	_user$project$Main$LoadAll,
+	A2(_elm_lang$http$Http$get, 'api/v1/todos', _user$project$Main$decodeTodoList));
+var _user$project$Main$init = {
+	ctor: '_Tuple2',
+	_0: A2(
+		_user$project$Main$Model,
+		'',
+		{ctor: '[]'}),
+	_1: _user$project$Main$getTodos
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
@@ -87,25 +121,22 @@ var _user$project$Main$update = F2(
 					var errorText = A2(_elm_lang$core$Debug$log, 'error: ', _p0._0._0);
 					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				}
+			case 'DeleteTodo':
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_user$project$Main$Model, '', model.todos),
+					_1: _user$project$Main$encodeDeletedTodo(_p0._0)
+				};
 			default:
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{input: '', todos: model.todos}),
+					_1: _user$project$Main$getTodos
+				};
 		}
 	});
-var _user$project$Main$LoadAll = function (a) {
-	return {ctor: 'LoadAll', _0: a};
-};
-var _user$project$Main$getTodos = A2(
-	_elm_lang$http$Http$send,
-	_user$project$Main$LoadAll,
-	A2(_elm_lang$http$Http$get, 'api/v1/todos', _user$project$Main$decodeTodoList));
-var _user$project$Main$init = {
-	ctor: '_Tuple2',
-	_0: A2(
-		_user$project$Main$Model,
-		'',
-		{ctor: '[]'}),
-	_1: _user$project$Main$getTodos
-};
 var _user$project$Main$HandleTextInput = function (a) {
 	return {ctor: 'HandleTextInput', _0: a};
 };
@@ -130,8 +161,12 @@ var _user$project$Main$view = function (model) {
 							_elm_lang$html$Html$span,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('crud'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$id(todo),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('crud'),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
@@ -144,8 +179,13 @@ var _user$project$Main$view = function (model) {
 								_elm_lang$html$Html$span,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('crud'),
-									_1: {ctor: '[]'}
+									_0: _elm_lang$html$Html_Events$onClick(
+										_user$project$Main$DeleteTodo(todo)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('crud'),
+										_1: {ctor: '[]'}
+									}
 								},
 								{
 									ctor: '::',

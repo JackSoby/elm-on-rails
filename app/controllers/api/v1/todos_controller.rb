@@ -5,17 +5,19 @@ class Api::V1::TodosController < ApplicationController
     todos = Todo.all
     render json: todos.sort.reverse
   end
+  
   def create
     newTodo = Todo.new(name: params["name"])
     if(newTodo.save)
-      render json: newTodo
+      render json: neTwodo
     else
       render json: "todo did not save"
     end
   end
 
   def destroy
-    binding.pry
+    Todo.where(name: params[:name]).destroy_all
+    render json: "tod deleted"
   end
 
 end
