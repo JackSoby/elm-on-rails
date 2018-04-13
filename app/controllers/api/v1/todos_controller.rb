@@ -9,15 +9,15 @@ class Api::V1::TodosController < ApplicationController
   def create
     newTodo = Todo.new(name: params["name"])
     if(newTodo.save)
-      render json: neTwodo
+      render json: newTodo
     else
       render json: "todo did not save"
     end
   end
 
   def destroy
-    Todo.where(name: params[:name]).destroy_all
-    render json: "tod deleted"
+    Todo.where(id: params["todo"]['id']).destroy_all
+    render json: "todo deleted"
   end
 
 end

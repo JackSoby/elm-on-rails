@@ -1,12 +1,3 @@
-var _user$project$Main$decodeText = A2(
-	_elm_lang$core$Json_Decode$at,
-	{
-		ctor: '::',
-		_0: 'name',
-		_1: {ctor: '[]'}
-	},
-	_elm_lang$core$Json_Decode$string);
-var _user$project$Main$decodeTodoList = _elm_lang$core$Json_Decode$list(_user$project$Main$decodeText);
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
@@ -14,6 +5,16 @@ var _user$project$Main$Model = F2(
 	function (a, b) {
 		return {input: a, todos: b};
 	});
+var _user$project$Main$Todo = F2(
+	function (a, b) {
+		return {id: a, name: b};
+	});
+var _user$project$Main$decodeText = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_user$project$Main$Todo,
+	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
+var _user$project$Main$decodeTodoList = _elm_lang$core$Json_Decode$list(_user$project$Main$decodeText);
 var _user$project$Main$UpdateDeletedTodos = function (a) {
 	return {ctor: 'UpdateDeletedTodos', _0: a};
 };
@@ -26,10 +27,18 @@ var _user$project$Main$encodeDeletedTodo = function (todo) {
 			ctor: '::',
 			_0: {
 				ctor: '_Tuple2',
-				_0: 'name',
-				_1: _elm_lang$core$Json_Encode$string(todo)
+				_0: 'id',
+				_1: _elm_lang$core$Json_Encode$int(todo.id)
 			},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'name',
+					_1: _elm_lang$core$Json_Encode$string(todo.name)
+				},
+				_1: {ctor: '[]'}
+			}
 		});
 	return _user$project$Main$oldTodo(encodedTodo);
 };
@@ -154,19 +163,15 @@ var _user$project$Main$view = function (model) {
 				},
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text(todo),
+					_0: _elm_lang$html$Html$text(todo.name),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_elm_lang$html$Html$span,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$id(todo),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('crud'),
-									_1: {ctor: '[]'}
-								}
+								_0: _elm_lang$html$Html_Attributes$class('crud'),
+								_1: {ctor: '[]'}
 							},
 							{
 								ctor: '::',
