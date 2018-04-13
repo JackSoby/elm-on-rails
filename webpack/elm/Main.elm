@@ -24,8 +24,11 @@ main =
 
 type alias Model =
     { input : String
-    , todos : List String
+    , todos : List Todo
     }
+
+type alias Todo = {  id : Int, name : String }
+
 
 
 init : ( Model, Cmd Msg )
@@ -36,9 +39,9 @@ init =
 type Msg
     = AddTodo
     | HandleTextInput String
-    | LoadAll (Result Http.Error (List String))
-    | UpdateTodoList (Result Http.Error String)
-    | DeleteTodo String
+    | LoadAll (Result Http.Error (List Todo))
+    | UpdateTodoList (Result Http.Error Todo)
+    | DeleteTodo Todo
     | UpdateDeletedTodos (WebData String)
 
 
@@ -83,7 +86,7 @@ view model =
     let
         renderedTodos =
             model.todos
-                |> List.map (\todo -> div [ class "single-todo" ] [ text todo, span [ id todo, class "crud" ] [ text "Update" ], span [ onClick (DeleteTodo todo), class "crud" ] [ text "Delete" ] ])
+                |> List.map (\todo -> div [ class "single-todo" ] [ text todo.name, span [ class "crud" ] [ text "Update" ], span [ onClick (DeleteTodo todo), class "crud" ] [ text "Delete" ] ])
     in
         div [ class "elm-container" ]
             [ div [ class "other-body" ]
@@ -108,7 +111,6 @@ getTodos : Cmd Msg
 getTodos =
     Http.send LoadAll (Http.get "api/v1/todos" decodeTodoList)
 
-
 encodeTodo : String -> Cmd Msg
 encodeTodo todo =
     let
@@ -119,15 +121,17 @@ encodeTodo todo =
         newTodo encodedTodo
 
 
-encodeDeletedTodo : String -> Cmd Msg
+encodeDeletedTodo : Todo -> Cmd Msg
 encodeDeletedTodo todo =
     let
-        encodedTodo =
+        encodedTodo = 
             Encode.object
-                [ ( "name", Encode.string todo ) ]
+                 [   ( "id", Encode.int todo.id ),
+                     ( "name", Encode.string todo.name )
+                 
+                 ]
     in
         oldTodo encodedTodo
-
 
 oldTodo : Decode.Value -> Cmd Msg
 oldTodo todo =
@@ -140,16 +144,20 @@ newTodo userInput =
         body =
             userInput
                 |> Http.jsonBody
+
     in
         Http.send UpdateTodoList (Http.post "api/v1/todos" body (decodeText))
 
 
-decodeTodoList : Decode.Decoder (List String)
+decodeTodoList : Decode.Decoder (List Todo)
 decodeTodoList =
     Decode.list decodeText
 
 
-decodeText : Decode.Decoder String
+decodeText : Decode.Decoder Todo
 decodeText =
-    Decode.at [ "name" ] Decode.string
+   Decode.map2 Todo
+    (field "id" int)
+    (field "name" string)
+    
     
