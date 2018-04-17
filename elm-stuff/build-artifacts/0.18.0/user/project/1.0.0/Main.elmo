@@ -1,9 +1,29 @@
+var _user$project$Main$encodeUpdatedTodo = function (todo) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'id',
+				_1: _elm_lang$core$Json_Encode$int(todo.id)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'name',
+					_1: _elm_lang$core$Json_Encode$string(todo.name)
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _user$project$Main$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$none;
 };
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {input: a, todos: b};
+var _user$project$Main$Model = F3(
+	function (a, b, c) {
+		return {input: a, todos: b, editingTodo: c};
 	});
 var _user$project$Main$Todo = F2(
 	function (a, b) {
@@ -15,6 +35,20 @@ var _user$project$Main$decodeText = A3(
 	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int),
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string));
 var _user$project$Main$decodeTodoList = _elm_lang$core$Json_Decode$list(_user$project$Main$decodeText);
+var _user$project$Main$SaveUpdatedTodo = function (a) {
+	return {ctor: 'SaveUpdatedTodo', _0: a};
+};
+var _user$project$Main$UpdateUpdatedTodos = function (a) {
+	return {ctor: 'UpdateUpdatedTodos', _0: a};
+};
+var _user$project$Main$sendUpdatedTodo = function (todo) {
+	return A4(
+		_ohanhi$remotedata_http$RemoteData_Http$put,
+		'/api/v1/todos/:id',
+		_user$project$Main$UpdateUpdatedTodos,
+		_user$project$Main$decodeText,
+		_user$project$Main$encodeUpdatedTodo(todo));
+};
 var _user$project$Main$UpdateDeletedTodos = function (a) {
 	return {ctor: 'UpdateDeletedTodos', _0: a};
 };
@@ -41,6 +75,9 @@ var _user$project$Main$encodeDeletedTodo = function (todo) {
 			}
 		});
 	return _user$project$Main$oldTodo(encodedTodo);
+};
+var _user$project$Main$UpdateTodo = function (a) {
+	return {ctor: 'UpdateTodo', _0: a};
 };
 var _user$project$Main$DeleteTodo = function (a) {
 	return {ctor: 'DeleteTodo', _0: a};
@@ -77,10 +114,11 @@ var _user$project$Main$getTodos = A2(
 	A2(_elm_lang$http$Http$get, 'api/v1/todos', _user$project$Main$decodeTodoList));
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: A2(
+	_0: A3(
 		_user$project$Main$Model,
 		'',
-		{ctor: '[]'}),
+		{ctor: '[]'},
+		_elm_lang$core$Maybe$Nothing),
 	_1: _user$project$Main$getTodos
 };
 var _user$project$Main$update = F2(
@@ -90,7 +128,7 @@ var _user$project$Main$update = F2(
 			case 'AddTodo':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_user$project$Main$Model, '', model.todos),
+					_0: A3(_user$project$Main$Model, '', model.todos, _elm_lang$core$Maybe$Nothing),
 					_1: _user$project$Main$encodeTodo(model.input)
 				};
 			case 'HandleTextInput':
@@ -133,16 +171,45 @@ var _user$project$Main$update = F2(
 			case 'DeleteTodo':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_user$project$Main$Model, '', model.todos),
+					_0: A3(_user$project$Main$Model, '', model.todos, _elm_lang$core$Maybe$Nothing),
 					_1: _user$project$Main$encodeDeletedTodo(_p0._0)
+				};
+			case 'UpdateUpdatedTodos':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{input: ''}),
+					_1: _user$project$Main$getTodos
+				};
+			case 'UpdateDeletedTodos':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{input: ''}),
+					_1: _user$project$Main$getTodos
+				};
+			case 'UpdateTodo':
+				var _p1 = _p0._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							input: _p1.name,
+							editingTodo: _elm_lang$core$Maybe$Just(_p1.id)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{input: '', todos: model.todos}),
-					_1: _user$project$Main$getTodos
+						{input: ''}),
+					_1: _user$project$Main$sendUpdatedTodo(
+						{id: _p0._0, name: model.input})
 				};
 		}
 	});
@@ -151,6 +218,45 @@ var _user$project$Main$HandleTextInput = function (a) {
 };
 var _user$project$Main$AddTodo = {ctor: 'AddTodo'};
 var _user$project$Main$view = function (model) {
+	var submitButton = function () {
+		var _p2 = model.editingTodo;
+		if (_p2.ctor === 'Just') {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('button'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_user$project$Main$SaveUpdatedTodo(_p2._0)),
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Update Todo'),
+					_1: {ctor: '[]'}
+				});
+		} else {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('button'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$AddTodo),
+						_1: {ctor: '[]'}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Add Todo'),
+					_1: {ctor: '[]'}
+				});
+		}
+	}();
 	var renderedTodos = A2(
 		_elm_lang$core$List$map,
 		function (todo) {
@@ -170,8 +276,13 @@ var _user$project$Main$view = function (model) {
 							_elm_lang$html$Html$span,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('crud'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Events$onClick(
+									_user$project$Main$UpdateTodo(todo)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('crud'),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
@@ -257,22 +368,7 @@ var _user$project$Main$view = function (model) {
 										{ctor: '[]'}),
 									_1: {
 										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$div,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('button'),
-												_1: {
-													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$AddTodo),
-													_1: {ctor: '[]'}
-												}
-											},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('Add Todo'),
-												_1: {ctor: '[]'}
-											}),
+										_0: submitButton,
 										_1: {ctor: '[]'}
 									}
 								}),

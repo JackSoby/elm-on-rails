@@ -16,8 +16,14 @@ class Api::V1::TodosController < ApplicationController
   end
 
   def destroy
-    Todo.where(id: params["todo"]['id']).destroy_all
+    todo = Todo.find_by(id: params["todo"]['id'])
+    todo.destroy
     render json: "todo deleted"
   end
 
+  def update
+    todo = Todo.find_by(id: params["todo"]['id'])
+    todo.update(name: params["todo"]['name'])
+    render json: todo
+  end
 end
