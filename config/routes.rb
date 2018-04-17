@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  root to: "welcomes#index"
+  root 'welcomes#index'
+
   namespace :api do
       namespace :v1 do
         resources :todos
