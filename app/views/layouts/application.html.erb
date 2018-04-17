@@ -7,8 +7,8 @@
   </head>
 
   <body>
-    <div id="main"></div>
-    <%= javascript_include_tag *webpack_asset_paths("application") %>
+   
     <%= yield %>
+        <%= javascript_include_tag *webpack_asset_paths("application") %>
   </body>
 </html>
